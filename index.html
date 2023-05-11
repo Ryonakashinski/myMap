@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Where are my homes</title>
+
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css"
+      integrity="sha256-kLaT2GOSpHechhsozzB+flnD+zUyjE2LlfWPgU04xyI="
+      crossorigin="" />
+    <!-- Make sure you put this AFTER Leaflet's CSS -->
+    <!-- leaflet js -->
+    <script
+      src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"
+      integrity="sha256-WBkoXOwTeyKclOHuWtc+i2uENFpDZ9YPdf5Hf+D7ewM="
+      crossorigin=""></script>
+
+    <!-- Leaflet Control Geocoder -->
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
+    <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
+
+    <style>
+      #map {
+        height: 1000px;
+      }
+    </style>
+  </head>
+
+  <!-- the interactive web map -->
+  <body>
+    <h1>Where are my homes</h1>
+    <div id="map"></div>
+  </body>
+
+  <script>
+    fetch("http://ip-api.com/json/?fields=61439")
+      .then((res) => res.json())
+      .then((res) => console.log(res));
+
+    // map initialization. L for leaflip
+    var map = L.map("map");
+    map.setView([33.58986, 130.40177], 4);
+    // a default location (London) with a zoom level of 10
+    // .setView([37.8, -96], 4);(U.S.)
+
+    // if you click the point, the title comes up.
+    L.marker([33.58986, 130.40177], {
+      title: "fukuoka",
+    }).addTo(map);
+
+    //
+    //
+    //
+
+    // error function is going to fire if there's an error
+    function error(error) {
+      console.warn("ERROR(" + error.code + "): " + error.message);
+    }
+    var searchControl = L.Control.geocoder({
+      defaultMarkGeocode: false,
+    }).addTo(map);
+    searchControl.on("markgeocode", function (event) {
+      // Clear any existing markers on the map
+      map.eachLayer(function (layer) {
+        if (layer instanceof L.Marker) {
+          map.removeLayer(layer);
+        }
+      });
+      // Add a marker to the selected location
+      var marker = L.marker(event.geocode.center)
+        .bindPopup(event.geocode.name)
+        .addTo(map);
+
+      // Zoom to the selected location
+      map.setView(event.geocode.center, 13);
+    });
+
+    //
+    //
+    //
+    // Labels on top of basemap
+    map.createPane("labels");
+    map.getPane("labels").style.zIndex = 650;
+    // disable pointer events for it
+    map.getPane("labels").style.pointerEvents = "none";
+    // CartoDB's Positron map tiles for the map background
+    var positron = L.tileLayer(
+      "https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}.png",
+      {
+        attribution: "©OpenStreetMap, ©CartoDB",
+      }
+    ).addTo(map);
+    // CartoDB's Positron map tiles for the labels
+    var positronLabels = L.tileLayer(
+      "https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}.png",
+      {
+        attribution: "©OpenStreetMap, ©CartoDB",
+        pane: "labels",
+      }
+    ).addTo(map);
+    var geojson = L.geoJson(GeoJsonData, geoJsonOptions).addTo(map);
+    geojson.eachLayer(function (layer) {
+      layer.bindPopup(layer.feature.properties.name);
+    });
+    // the map is fitted to the bounds of the GeoJSON layer
+    map.fitBounds(geojson.getBounds());
+    //
+    //
+    //I want to select each countries and put a color on
+    import { MapContainer } from "https://cdn.esm.sh/react-leaflet/MapContainer";
+    function MyComponent() {
+      const map = useMap();
+      console.log("map center:", map.getCenter());
+      return null;
+    }
+
+    function MyMapComponent() {
+      return (
+        <MapContainer center={[50.5, 30.5]} zoom={13}>
+          <MyComponent />
+        </MapContainer>
+      );
+    }
+    import { useMap } from "https://cdn.esm.sh/react-leaflet/hooks";
+    function MyComponent() {
+      const map = useMapEvents({
+        click: () => {
+          map.locate();
+        },
+        locationfound: (location) => {
+          console.log("location found:", location);
+        },
+      });
+      return null;
+    }
+
+    function MyMapComponent() {
+      return (
+        <MapContainer center={[50.5, 30.5]} zoom={13}>
+          <MyComponent />
+        </MapContainer>
+      );
+    }
+    import { useMapEvents } from "https://cdn.esm.sh/react-leaflet/hooks";
+    function MyComponent() {
+      const map = useMapEvent("click", () => {
+        map.setView([50.5, 30.5], map.getZoom());
+      });
+      return null;
+    }
+
+    function MyMapComponent() {
+      return (
+        <MapContainer center={[50.5, 30.5]} zoom={13}>
+          <MyComponent />
+        </MapContainer>
+      );
+    }
+    import { useMapEvent } from "https://cdn.esm.sh/react-leaflet/hooks";
+
+    //
+    //
+    //
+    // creat a tunnel layer
+    L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      maxZoom: 5,
+      attribution:
+        '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+    }).addTo(map);
+
+    // set the initial view of the map
+    map.setView([37.8, -96], 13);
+
+    // add a marker to the map for each search result
+    for (var i = data.results.length - 1; i >= 0; i--) {
+      results.addLayer(L.marker(data.results[i].latlng));
+    }
+
+    let marker, circle, zoomed;
+    // request the current position of a user
+    navigator.geolocation.watchPosition(success, error);
+
+    // success function is going to fire!
+    function success(pos) {
+      const lat = pos.coords.latitude;
+      const lng = pos.coords.longitude;
+      const accuracy = pos.coords.accuracy;
+      // the first time this function runs, there is no value for markers
+      // so the code inside the "if" statement is going to be ignored.
+      // but when another marker is added,it's going to be true.
+      if (marker) {
+        map.removeLayer(marker);
+        map.removeLayer(circle);
+      }
+
+      // adding a marker and a circle to the map
+      marker = L.marker([lat, lng]).addTo(map);
+      //   the radius of the circle which is denoting the accuracy of my current position.
+      circle = L.circle([lat, lng], { radius: accuracy }).addTo(map);
+      // zoom the map to the extent of the circle.
+
+      if (!zoomed) {
+        zoomed = map.fitBounds(circle.getBounds());
+      }
+
+      map.setView([lat, lng]);
+    }
+
+    function error(err) {
+      if (err.code === 1) {
+        alert("Please allow geolocation access");
+      } else {
+        alert("Cannot get current location");
+      }
+    }
+
+    function highlightFeature(e) {
+      var layer = e.target;
+
+      layer.setStyle({
+        weight: 5,
+        color: "#666",
+        dashArray: "",
+        fillOpacity: 0.7,
+      });
+
+      layer.bringToFront();
+    }
+  </script>
+</html>
